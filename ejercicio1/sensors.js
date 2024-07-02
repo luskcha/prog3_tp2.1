@@ -1,4 +1,22 @@
-class Sensor {}
+class Sensor {
+    constructor(id, name, type, value, unit, updated_at) {
+        this.id = id;
+        this.name = name;
+        this.type = type;
+        this.value = value;
+        this.unit = unit;
+        this.updated_at = updated_at;
+    }
+    set updateValue(newValue) {
+        this.value = newValue;
+        this.updated_at = new Date().toISOString();
+    }
+
+    static validateType(type) {
+        const validTypes = ['temperature', 'humidity', 'pressure'];
+        return validTypes.includes(type);
+    }
+}
 
 class SensorManager {
     constructor() {
@@ -33,14 +51,37 @@ class SensorManager {
         }
     }
 
-    async loadSensors(url) {}
+    async loadSensors(url) {
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+            data.forEach(sensorData => {
+                if (Sensor.validateType(sensorData.type)) {
+                    const sensor = new Sensor(
+                        sensorData.id,
+                        sensorData.name,
+                        sensorData.type,
+                        sensorData.value,
+                        sensorData.unit,
+                        sensorData.updated_at
+                    );
+                    this.addSensor(sensor);
+                } else {
+                    console.error(`Tipo de sensor inválido: ${sensorData.type}`);
+                }
+            });
+            this.render();
+        } catch (error) {
+            console.error('Error al cargar los sensores:', error);
+        }
+    }
 
     render() {
-        const container = document.getElementById("sensor-container");
-        container.innerHTML = "";
-        this.sensors.forEach((sensor) => {
-            const sensorCard = document.createElement("div");
-            sensorCard.className = "column is-one-third";
+        const container = document.getElementById('sensor-container');
+        container.innerHTML = '';
+        this.sensors.forEach(sensor => {
+            const sensorCard = document.createElement('div');
+            sensorCard.className = 'column is-one-third';
             sensorCard.innerHTML = `
                 <div class="card">
                     <header class="card-header">
@@ -54,31 +95,26 @@ class SensorManager {
                                 <strong>Tipo:</strong> ${sensor.type}
                             </p>
                             <p>
-                               <strong>Valor:</strong> 
-                               ${sensor.value} ${sensor.unit}
+                                <strong>Valor:</strong> ${sensor.value} ${sensor.unit}
                             </p>
                         </div>
                         <time datetime="${sensor.updated_at}">
-                            Última actualización: ${new Date(
-                                sensor.updated_at
-                            ).toLocaleString()}
+                            Última actualización: ${new Date(sensor.updated_at).toLocaleString()}
                         </time>
                     </div>
                     <footer class="card-footer">
-                        <a href="#" class="card-footer-item update-button" data-id="${
-                            sensor.id
-                        }">Actualizar</a>
+                        <a href="#" class="card-footer-item update-button" data-id="${sensor.id}">Actualizar</a>
                     </footer>
                 </div>
             `;
             container.appendChild(sensorCard);
         });
 
-        const updateButtons = document.querySelectorAll(".update-button");
-        updateButtons.forEach((button) => {
-            button.addEventListener("click", (event) => {
+        const updateButtons = document.querySelectorAll('.update-button');
+        updateButtons.forEach(button => {
+            button.addEventListener('click', event => {
                 event.preventDefault();
-                const sensorId = parseInt(button.getAttribute("data-id"));
+                const sensorId = parseInt(button.getAttribute('data-id'));
                 this.updateSensor(sensorId);
             });
         });
@@ -86,5 +122,4 @@ class SensorManager {
 }
 
 const monitor = new SensorManager();
-
-monitor.loadSensors("sensors.json");
+monitor.loadSensors('sensors.json');

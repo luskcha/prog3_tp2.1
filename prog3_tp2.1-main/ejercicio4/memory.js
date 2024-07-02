@@ -10,42 +10,29 @@ class Card {
         const cardElement = document.createElement("div");
         cardElement.classList.add("cell");
         cardElement.innerHTML = `
-            <div class="card" data-name="${this.name}">
-            <div class="card-inner">
-            <div class="card-front"></div>
-            <div class="card-back">
-            <img src="${this.img}" alt="${this.name}"
-            </div>
-            </div>
-            </div>
-        `;
+          <div class="card" data-name="${this.name}">
+              <div class="card-inner">
+                  <div class="card-front"></div>
+                  <div class="card-back">
+                      <img src="${this.img}" alt="${this.name}">
+                  </div>
+              </div>
+          </div>
+      `;
         return cardElement;
     }
 
     #flip() {
         const cardElement = this.element.querySelector(".card");
         cardElement.classList.add("flipped");
-        this.isFlipped = true;
-    }
     }
 
     #unflip() {
         const cardElement = this.element.querySelector(".card");
         cardElement.classList.remove("flipped");
-        this.isFlipped = false;
-    }
-
-toggleFlip() {
-    if (this.isFlipped) {
-        this.#unflip();
-    } else {
-        this.#flip();
     }
 }
 
-matches(otherCard) {
-    return this.name === otherCard.name;
-}
 class Board {
     constructor(cards) {
         this.cards = cards;
@@ -81,21 +68,7 @@ class Board {
             this.gameBoardElement.appendChild(card.element);
         });
     }
-    shuffleCards() {
-        this.cards.sort(() => Math.random() - 0.5);
-    }
 
-    reset() {
-        this.shuffleCards();
-        this.render();
-    }
-    flipDownAllCards() {
-        this.cards.forEach(card => {
-            if (card.isFlipped) {
-                card.toggleFlip();
-            }
-        });
-    }
     onCardClicked(card) {
         if (this.onCardClick) {
             this.onCardClick(card);
@@ -108,10 +81,6 @@ class MemoryGame {
         this.board = board;
         this.flippedCards = [];
         this.matchedCards = [];
-        this.moves = 0;
-        this.startTime = null;
-        this.timerInterval = null;
-
         if (flipDuration < 350 || isNaN(flipDuration) || flipDuration > 3000) {
             flipDuration = 350;
             alert(
@@ -121,61 +90,17 @@ class MemoryGame {
         this.flipDuration = flipDuration;
         this.board.onCardClick = this.#handleCardClick.bind(this);
         this.board.reset();
-        this.startTimer();
-    }
-
-    startTimer() {
-        this.startTime = Date.now();
-        this.timerInterval = setInterval(() => {
-            const elapsedTime = Date.now() - this.startTime;
-            document.getElementById("timer").textContent = `Tiempo: ${Math.floor(elapsedTime / 1000)}s`;
-        }, 1000);
-    }
-
-    stopTimer() {
-        clearInterval(this.timerInterval);
     }
 
     #handleCardClick(card) {
         if (this.flippedCards.length < 2 && !card.isFlipped) {
             card.toggleFlip();
             this.flippedCards.push(card);
-            this.moves += 1;
-            document.getElementById("moves").textContent = `Movimientos: ${this.moves}`;
 
             if (this.flippedCards.length === 2) {
                 setTimeout(() => this.checkForMatch(), this.flipDuration);
             }
         }
-    }
-
-    checkForMatch() {
-        const [card1, card2] = this.flippedCards;
-
-        if (card1.matches(card2)) {
-            this.matchedCards.push(card1, card2);
-            this.flippedCards = [];
-
-            if (this.matchedCards.length === this.board.cards.length) {
-                this.stopTimer();
-                setTimeout(() => alert("¡Ganaste!"), this.flipDuration);
-            }
-        } else {
-            card1.toggleFlip();
-            card2.toggleFlip();
-            this.flippedCards = [];
-        }
-    }
-
-    resetGame() {
-        this.flippedCards = [];
-        this.matchedCards = [];
-        this.moves = 0;
-        document.getElementById("moves").textContent = "Movimientos: 0";
-        this.stopTimer();
-        this.startTimer();
-        this.board.flipDownAllCards();
-        this.board.reset();
     }
 }
 

@@ -7,23 +7,26 @@
             rel="icon"
             href="https://academiacimneiber.com/assets/logoClaro-Z6OnHFdL.png"
         />
-        <title>Monitor de Sensores</title>
+        <title>Juego de Memoria</title>
         <link
             rel="stylesheet"
             href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css"
         />
+        <link rel="stylesheet" href="memory.css" />
     </head>
     <body>
         <section class="section">
             <div class="container">
-                <h1 class="title">Monitor de Sensores</h1>
-                <div
-                    id="sensor-container"
-                    class="columns is-multiline mt-4"
-                ></div>
+                <h1 class="title">Juego de Memoria</h1>
+                <button id="restart-button" class="button is-primary">
+                    Reiniciar Juego
+                </button>
+                <div class="fixed-grid has-4-cols">
+                    <div id="game-board" class="grid"></div>
+                </div>
             </div>
         </section>
 
-        <script src="sensors.js"></script>
+        <script src="memory.js"></script>
     </body>
-</html> 
+</html>

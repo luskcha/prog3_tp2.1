@@ -6,11 +6,64 @@ class Currency {
 }
 
 class CurrencyConverter {
-    constructor() {}
+    constructor(apiUrl) {
+        this.apiUrl = apiUrl;
+        this.currencies = [];
+    }
 
-    getCurrencies(apiUrl) {}
+    async getCurrencies() {
+        try {
+            const response = await fetch(`${this.apiUrl}/currencies`);
+            const data = await response.json();
+            this.currencies = Object.entries(data).map(
+                ([code, name]) => new Currency(code, name)
+            );
+        } catch (error) {
+            console.error("Error fetching currencies:", error);
+        }
+    }
 
-    convertCurrency(amount, fromCurrency, toCurrency) {}
+    async convertCurrency(amount, fromCurrency, toCurrency) {
+        if (fromCurrency.code === toCurrency.code) {
+            return parseFloat(amount);
+        }
+
+        try {
+            const response = await fetch(
+                `${this.apiUrl}/latest?amount=${amount}&from=${fromCurrency.code}&to=${toCurrency.code}`
+            );
+            const data = await response.json();
+            return data.rates[toCurrency.code];
+        } catch (error) {
+            console.error("Error converting currency:", error);
+            return null;
+        }
+    }
+
+    async getExchangeRateDifference(fromCurrency, toCurrency) {
+        try {
+            const today = new Date().toISOString().split('T')[0];
+            const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+
+            const todayResponse = await fetch(
+                `${this.apiUrl}/${today}?from=${fromCurrency.code}&to=${toCurrency.code}`
+            );
+            const yesterdayResponse = await fetch(
+                `${this.apiUrl}/${yesterday}?from=${fromCurrency.code}&to=${toCurrency.code}`
+            );
+
+            const todayData = await todayResponse.json();
+            const yesterdayData = await yesterdayResponse.json();
+
+            const todayRate = todayData.rates[toCurrency.code];
+            const yesterdayRate = yesterdayData.rates[toCurrency.code];
+
+            return todayRate - yesterdayRate;
+        } catch (error) {
+            console.error("Error fetching exchange rate difference:", error);
+            return null;
+        }
+    }
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
